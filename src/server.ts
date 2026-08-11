@@ -24,7 +24,7 @@ function textResult(value: Awaited<ReturnType<AtlassianService["get"]>>) {
 
 export function createServer(service: AtlassianService = new AtlassianClient()): McpServer {
   const server = new McpServer({
-    name: "better-atlassian",
+    name: "atlassian",
     version: "0.1.0",
   });
 

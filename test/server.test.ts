@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AtlassianService } from "../src/atlassian.js";
 import { createServer } from "../src/server.js";
 
-describe("Better Atlassian MCP server", () => {
+describe("Atlassian MCP server", () => {
   let client: Client | undefined;
   let server: ReturnType<typeof createServer> | undefined;
 
@@ -27,6 +27,11 @@ describe("Better Atlassian MCP server", () => {
     const connected = await connect({
       get: vi.fn(),
       searchJira: vi.fn(),
+    });
+
+    expect(connected.getServerVersion()).toEqual({
+      name: "atlassian",
+      version: "0.1.0",
     });
 
     const { tools } = await connected.listTools();

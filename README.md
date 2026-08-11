@@ -1,4 +1,4 @@
-# Better Atlassian MCP
+# Atlassian MCP
 
 A focused, read-only [Model Context Protocol](https://modelcontextprotocol.io/) server for Jira and Confluence Cloud. It works with Amp, Claude Code, Codex, and other clients that support local stdio MCP servers.
 
@@ -29,19 +29,19 @@ export ATLASSIAN_API_TOKEN="your-api-token"
 Run the published package through an MCP client:
 
 ```bash
-npx -y @andreimaxim/better-atlassian-mcp
+npx -y @andreimaxim/atlassian-mcp@0.1.0
 ```
 
 It communicates over standard input and output, so running it directly appears to do nothing while it waits for an MCP client.
 
 ## Amp
 
-The distributable [`using-jira` skill](skill/using-jira/SKILL.md) includes the MCP launch configuration and exposes only `atlassian_get` and `jira_search`. Install that directory as a project, personal, or workspace skill.
+The distributable [`using-atlassian` skill](skill/using-atlassian/SKILL.md) includes the MCP launch configuration and exposes only `atlassian_get` and `jira_search`. Install that directory as a project, personal, or workspace skill.
 
 For a project skill, copy it into the repository:
 
 ```text
-.agents/skills/using-jira/SKILL.md
+.agents/skills/using-atlassian/SKILL.md
 ```
 
 For an orb, add the three `ATLASSIAN_*` values under personal, project, or workspace **Secrets & Env Vars**. Store the API token as a secret. Amp starts the MCP server in the orb when it discovers the skill and reveals its tools only when the skill loads.
@@ -53,8 +53,8 @@ The previous `amp.atlassian.*` plugin settings are no longer read; the portable 
 Register the same stdio server at user scope:
 
 ```bash
-claude mcp add --scope user --transport stdio better-atlassian -- \
-  npx -y @andreimaxim/better-atlassian-mcp
+claude mcp add --scope user --transport stdio atlassian -- \
+  npx -y @andreimaxim/atlassian-mcp@0.1.0
 ```
 
 Start Claude Code with the three `ATLASSIAN_*` variables available in its environment. For team distribution, put the equivalent server entry in the project's `.mcp.json` and keep credentials as environment-variable references.
@@ -64,9 +64,9 @@ Start Claude Code with the three `ATLASSIAN_*` variables available in its enviro
 Add this entry to `~/.codex/config.toml`, or to `.codex/config.toml` in a trusted project:
 
 ```toml
-[mcp_servers.better-atlassian]
+[mcp_servers.atlassian]
 command = "npx"
-args = ["-y", "@andreimaxim/better-atlassian-mcp"]
+args = ["-y", "@andreimaxim/atlassian-mcp@0.1.0"]
 env_vars = [
   "ATLASSIAN_SITE_URL",
   "ATLASSIAN_EMAIL",
@@ -90,5 +90,5 @@ Repository layout:
 - `src/atlassian.ts` contains credential handling, request validation, the Atlassian HTTP client, and bounded output formatting.
 - `src/server.ts` registers the MCP tools and their read-only annotations.
 - `src/index.ts` starts the stdio server.
-- `skill/using-jira/SKILL.md` contains the Amp skill and its MCP launch configuration.
+- `skill/using-atlassian/SKILL.md` contains the Amp skill and its MCP launch configuration.
 - `test/` contains HTTP-client and protocol-level integration tests.

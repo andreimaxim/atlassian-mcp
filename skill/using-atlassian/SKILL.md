@@ -1,10 +1,10 @@
 ---
-name: using-jira
-description: Queries Jira issues through the read-only Better Atlassian MCP server. Use when requests mention Jira, tickets, issues, JQL, projects, assignees, statuses, transitions, or Jira fields.
+name: using-atlassian
+description: Queries Jira and Confluence through the read-only Atlassian MCP server. Use for Jira issues, JQL, projects, fields, Confluence pages, spaces, content search, and Atlassian links.
 mcpServers:
-  better-atlassian:
+  atlassian:
     command: npx
-    args: ["-y", "@andreimaxim/better-atlassian-mcp"]
+    args: ["-y", "@andreimaxim/atlassian-mcp@0.1.0"]
     env:
       ATLASSIAN_SITE_URL: "${ATLASSIAN_SITE_URL}"
       ATLASSIAN_EMAIL: "${ATLASSIAN_EMAIL}"
@@ -12,14 +12,14 @@ mcpServers:
     includeTools: ["atlassian_get", "jira_search"]
 ---
 
-# Using Jira
+# Using Atlassian
 
-Use the Better Atlassian MCP tools instead of Git when the request is about Jira tickets or Jira work.
+Use the Atlassian MCP tools for bounded, read-only Jira and Confluence work.
 
 ## Choose the tool
 
 - Use `jira_search` for JQL. It is the only read-only POST endpoint and returns Jira's raw search response.
-- Use `atlassian_get` for every other read. Jira Cloud v3 paths begin with `/rest/api/3/`.
+- Use `atlassian_get` for every other Jira or Confluence read.
 - Writes are not supported. Never attempt mutations through `atlassian_get` or `jira_search`.
 
 ## Search with JQL
@@ -57,4 +57,17 @@ Call `atlassian_get` with these site-relative paths:
 
 Use the response's pagination token, cursor, `startAt`, or `_links.next` according to that endpoint. Make one GET per tool call.
 
-If asked to create, edit, assign, or transition a Jira issue, explain that the MCP server is read-only and cannot perform the change.
+## Common Confluence requests
+
+Call `atlassian_get` with site-relative paths beginning with `/wiki/`:
+
+- Page by ID: `/wiki/api/v2/pages/{pageId}`
+- Pages in a space: `/wiki/api/v2/spaces/{spaceId}/pages`
+- Spaces: `/wiki/api/v2/spaces`
+- Page children: `/wiki/api/v2/pages/{pageId}/children`
+- Page attachments: `/wiki/api/v2/pages/{pageId}/attachments`
+- CQL content search: `/wiki/rest/api/content/search` with a bounded `cql` query and `limit`
+
+When page content is needed, pass a supported `body-format` query value such as `storage` or `atlas_doc_format`. Follow `_links.next` exactly for pagination.
+
+If asked to create, edit, assign, transition, or delete Atlassian data, explain that the MCP server is read-only and cannot perform the change.
