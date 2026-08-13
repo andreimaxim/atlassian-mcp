@@ -1,6 +1,6 @@
 # Atlassian MCP
 
-A focused, read-only [Model Context Protocol](https://modelcontextprotocol.io/) server for Jira and Confluence Cloud. It works with Amp, Claude Code, Codex, and other clients that support local stdio MCP servers.
+A focused, read-only [Model Context Protocol](https://modelcontextprotocol.io/) server for Jira and Confluence Cloud. It works with Amp, Claude Code, Codex, [Docker Sandboxes](https://docs.docker.com/ai/sandboxes/), and other clients that support local stdio MCP servers.
 
 ## Tools
 
@@ -76,6 +76,44 @@ enabled_tools = ["atlassian_get", "jira_search"]
 ```
 
 The `env_vars` list forwards existing variables without placing their values in the configuration file.
+
+## Docker Sandboxes
+
+Docker Sandboxes 0.38 or newer exposes MCP through a host-side [gateway](https://docs.docker.com/ai/sandboxes/mcp-gateway/). Register this server once on the host; the agent inside the sandbox talks only to the gateway. The stdio process runs on the host, so Atlassian credentials stay out of the VM and Jira or Confluence traffic does not go through the sandbox network proxy.
+
+`sbx mcp add` has no `--env` flag. Export the three `ATLASSIAN_*` variables in the host session that runs `sbx` before you register or start a sandbox. If tool calls fail because credentials are missing, export the variables and run `sbx daemon restart` so the host process that launches the MCP server can see them. Do not put token values in `--args` or in a sandbox config file.
+
+```bash
+export ATLASSIAN_SITE_URL="https://your-company.atlassian.net"
+export ATLASSIAN_EMAIL="you@example.com"
+export ATLASSIAN_API_TOKEN="your-api-token"
+
+sbx mcp add atlassian --command npx --args "-y,@andreimaxim/atlassian-mcp@0.1.0"
+sbx mcp ls
+```
+
+`--args` is a comma-separated list, not a shell word split. The registration records the command; it does not attach the server to a sandbox.
+
+Start a sandbox with the server pre-loaded. The gateway wires MCP at startup for Claude Code, Codex, Gemini, Kiro, and OpenCode:
+
+```bash
+sbx run claude --static-mcp atlassian
+sbx run codex --static-mcp atlassian
+```
+
+For a sandbox that is already running:
+
+```bash
+sbx mcp load atlassian --sandbox my-session
+```
+
+Omit `--static-mcp` to use dynamic mode. The agent can then find the `atlassian` registration with `mcp-find` and attach it with `mcp-add`.
+
+The [`using-atlassian` skill](skill/using-atlassian/SKILL.md) is still useful for JQL and read-only API guidance. Copy it into the project so the mounted workspace can see it, for example `.agents/skills/using-atlassian/SKILL.md` or `.claude/skills/using-atlassian/SKILL.md`. Do not rely on the skill's `mcpServers` block inside a sandbox: register the server with `sbx mcp` instead. To share the skill across sandboxes, copy it into a host skills directory such as `~/.claude/skills` or `~/.agents/skills` and run `sbx skills import`.
+
+Local stdio servers run with the host user's permissions. Use the published package name above, and keep the API token in the host environment rather than in the sandbox.
+
+Cursor sandboxes are supported by Docker Sandboxes, but the MCP gateway does not configure Cursor at startup. Prefer Claude Code or Codex for this integration. Project-level Cursor MCP config would start the server inside the VM and require copying credentials into the sandbox; avoid that.
 
 ## Development
 
