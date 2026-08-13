@@ -1,0 +1,4 @@
+{
+  "name": "atlassian-mcp",
+  "install": "npm ci"
+}
